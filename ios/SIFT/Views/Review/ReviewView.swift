@@ -109,11 +109,9 @@ struct ReviewView: View {
                         .foregroundColor(.siftTextPrimary)
                         .lineLimit(2)
 
-                    if let reason = item.review_reason {
-                        Text(reason.replacingOccurrences(of: "_", with: " "))
-                            .font(.caption2)
-                            .foregroundColor(.siftWarning)
-                    }
+                    Text(item.review_reason.replacingOccurrences(of: "_", with: " "))
+                        .font(.caption2)
+                        .foregroundColor(.siftWarning)
                 }
 
                 Spacer()

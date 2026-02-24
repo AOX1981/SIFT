@@ -30,8 +30,8 @@ struct DashboardView: View {
                                 }
 
                                 // Narration Summary
-                                if let narration = analysis.narration, let summary = narration.summary {
-                                    narrationSection(summary: summary)
+                                if let narration = analysis.narration {
+                                    narrationSection(summary: narration.summary)
                                 }
 
                                 // Key Metrics
