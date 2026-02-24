@@ -88,12 +88,12 @@ export default function DashboardPage() {
 
       {/* Savings headline */}
       {potential_annual_savings && potential_annual_savings >= 1000 && (
-        <div className="card" style={{ marginBottom: 24, borderColor: 'var(--color-success)', background: 'rgba(34, 197, 94, 0.05)' }}>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 13, marginBottom: 4 }}>Potential Annual Savings</p>
-          <p style={{ fontSize: 36, fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--color-success)' }}>
+        <div className="card mb-6 border-green-500/40 bg-green-500/5">
+          <p className="text-muted text-[13px] mb-1">Potential Annual Savings</p>
+          <p className="text-4xl font-bold font-mono text-green-400">
             ${potential_annual_savings.toLocaleString()}
           </p>
-          <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>
+          <p className="text-[13px] text-muted mt-1">
             Conservative estimate with 15% safety haircut applied
           </p>
         </div>
@@ -101,14 +101,14 @@ export default function DashboardPage() {
 
       {/* Narration summary */}
       {narration?.summary && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <p style={{ fontSize: 15, lineHeight: 1.7 }}>{narration.summary}</p>
+        <div className="card mb-6">
+          <p className="text-[15px] leading-relaxed">{narration.summary}</p>
         </div>
       )}
 
       {/* Key Signals */}
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Key Metrics</h2>
-      <div className="grid grid-4" style={{ marginBottom: 32 }}>
+      <h2 className="text-base font-semibold mb-3">Key Metrics</h2>
+      <div className="grid grid-cols-4 gap-4 mb-8">
         <MetricCard
           label="Net Cashflow (90d)"
           value={`$${signals.net_cashflow?.toLocaleString()}`}
@@ -150,17 +150,17 @@ export default function DashboardPage() {
       {/* Archetypes */}
       {archetypes.length > 0 && (
         <>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Your Behavioral Patterns</h2>
-          <div className="grid grid-2" style={{ marginBottom: 32 }}>
+          <h2 className="text-base font-semibold mb-3">Your Behavioral Patterns</h2>
+          <div className="grid grid-cols-2 gap-4 mb-8">
             {archetypes.map((arch) => (
               <div className="card" key={arch.name}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div className="flex items-center gap-2 mb-2">
                   <span className="badge badge-purple">{arch.label}</span>
                 </div>
-                <p style={{ fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+                <p className="text-sm text-muted leading-relaxed">
                   {narration?.archetype_narratives?.find((n) => n.name === arch.name)?.narrative || arch.description}
                 </p>
-                <div style={{ marginTop: 12, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                <div className="mt-3 text-xs text-muted">
                   Triggered by: {arch.triggered_by.join(', ')}
                 </div>
               </div>
@@ -172,13 +172,13 @@ export default function DashboardPage() {
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Savings Actions</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+          <h2 className="text-base font-semibold mb-3">Savings Actions</h2>
+          <div className="flex flex-col gap-4 mb-8">
             {recommendations.map((rec, i) => (
               <div className="card" key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+                    <h3 className="text-[15px] font-semibold mb-1">
                       {i + 1}. {rec.title}
                     </h3>
                     <span className={`badge ${
@@ -191,25 +191,25 @@ export default function DashboardPage() {
                       {rec.type.replace(/_/g, ' ')}
                     </span>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-success)' }}>
+                  <div className="text-right">
+                    <p className="font-mono font-bold text-green-400">
                       ${rec.estimated_monthly_savings.toFixed(2)}/mo
                     </p>
-                    <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                    <p className="text-xs text-muted">
                       ${rec.estimated_annual_savings.toFixed(0)}/yr
                     </p>
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 12 }}>
+                <div className="mb-3">
                   {rec.steps.map((step, j) => (
-                    <p key={j} style={{ fontSize: 13, color: 'var(--color-text-muted)', padding: '2px 0' }}>
+                    <p key={j} className="text-[13px] text-muted py-0.5">
                       {j + 1}. {step}
                     </p>
                   ))}
                 </div>
 
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                <div className="text-xs text-muted">
                   Confidence: {Math.round(rec.confidence * 100)}% | Based on {rec.proof.length} transaction{rec.proof.length !== 1 ? 's' : ''}
                 </div>
               </div>
@@ -228,14 +228,13 @@ export default function DashboardPage() {
 
 function MetricCard({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
   return (
-    <div className="card" style={{ padding: 16 }}>
-      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 4 }}>{label}</p>
-      <p style={{
-        fontSize: 18,
-        fontWeight: 600,
-        fontFamily: 'var(--font-mono)',
-        color: positive === true ? 'var(--color-success)' : positive === false ? 'var(--color-danger)' : 'var(--color-text)',
-      }}>
+    <div className="card p-4">
+      <p className="text-xs text-muted mb-1">{label}</p>
+      <p className={`text-lg font-semibold font-mono ${
+        positive === true ? 'text-green-400' :
+        positive === false ? 'text-red-400' :
+        'text-gray-100'
+      }`}>
         {value}
       </p>
     </div>

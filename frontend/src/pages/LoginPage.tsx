@@ -26,20 +26,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '0.1em', marginBottom: 8 }}>SIFT</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Spending Behavioral Analysis</p>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-[400px]">
+        <div className="text-center mb-8">
+          <h1 className="text-[28px] font-bold tracking-widest mb-2">SIFT</h1>
+          <p className="text-muted text-sm">Spending Behavioral Analysis</p>
         </div>
 
         <div className="card">
-          <h2 style={{ fontSize: 18, marginBottom: 24 }}>Sign in</h2>
+          <h2 className="text-lg mb-6">Sign in</h2>
 
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-4">
               <label className="label">Email</label>
               <input
                 className="input"
@@ -50,7 +50,7 @@ export default function LoginPage() {
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: 24 }}>
+            <div className="mb-6">
               <label className="label">Password</label>
               <input
                 className="input"
@@ -61,12 +61,12 @@ export default function LoginPage() {
                 minLength={8}
               />
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            <button className="btn btn-primary w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', marginTop: 16, fontSize: 14, color: 'var(--color-text-muted)' }}>
+          <p className="text-center mt-4 text-sm text-muted">
             No account? <Link to="/register">Create one</Link>
           </p>
         </div>

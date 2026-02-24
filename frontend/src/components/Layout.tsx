@@ -5,19 +5,11 @@ export default function Layout() {
   const { user, logout } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <nav style={{
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '0 24px',
-        height: 56,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '0.05em' }}>SIFT</span>
-          <div style={{ display: 'flex', gap: 4 }}>
+    <div className="min-h-screen flex flex-col">
+      <nav className="bg-surface border-b border-border px-6 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <span className="font-bold text-lg tracking-widest">SIFT</span>
+          <div className="flex gap-1">
             {[
               { to: '/dashboard', label: 'Dashboard' },
               { to: '/transactions', label: 'Transactions' },
@@ -27,35 +19,32 @@ export default function Layout() {
               <NavLink
                 key={to}
                 to={to}
-                style={({ isActive }) => ({
-                  padding: '8px 14px',
-                  borderRadius: 'var(--radius)',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                  textDecoration: 'none',
-                })}
+                className={({ isActive }) =>
+                  `px-3.5 py-2 rounded-lg text-sm font-medium no-underline transition-colors ${
+                    isActive
+                      ? 'text-indigo-400 bg-indigo-500/10'
+                      : 'text-muted hover:text-gray-100'
+                  }`
+                }
               >
                 {label}
               </NavLink>
             ))}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-4">
+          <span className="text-[13px] text-muted">
             {user?.email}
           </span>
           <button
             onClick={logout}
-            className="btn btn-secondary"
-            style={{ padding: '6px 12px', fontSize: 13 }}
+            className="btn btn-secondary px-3 py-1.5 text-[13px]"
           >
             Logout
           </button>
         </div>
       </nav>
-      <main style={{ flex: 1, padding: '32px 24px' }}>
+      <main className="flex-1 py-8 px-6">
         <div className="container">
           <Outlet />
         </div>

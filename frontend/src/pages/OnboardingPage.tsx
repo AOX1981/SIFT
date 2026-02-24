@@ -65,25 +65,25 @@ export default function OnboardingPage() {
       {error && <div className="error-message">{error}</div>}
 
       {step === 'choose' && (
-        <div className="grid grid-2" style={{ maxWidth: 700 }}>
-          <div className="card" style={{ cursor: 'pointer' }} onClick={handlePlaidConnect}>
-            <h3 style={{ marginBottom: 8 }}>Connect Bank</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
+        <div className="grid grid-cols-2 gap-6 max-w-[700px]">
+          <div className="card cursor-pointer hover:border-indigo-500/50 transition-colors" onClick={handlePlaidConnect}>
+            <h3 className="mb-2">Connect Bank</h3>
+            <p className="text-muted text-sm">
               Securely connect via Plaid for automatic transaction sync.
               Supports 12-24 months of history.
             </p>
-            <div style={{ marginTop: 16 }}>
+            <div className="mt-4">
               <span className="badge badge-blue">Recommended</span>
             </div>
           </div>
 
-          <div className="card" style={{ cursor: 'pointer' }} onClick={() => setStep('csv')}>
-            <h3 style={{ marginBottom: 8 }}>Upload CSV</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
+          <div className="card cursor-pointer hover:border-indigo-500/50 transition-colors" onClick={() => setStep('csv')}>
+            <h3 className="mb-2">Upload CSV</h3>
+            <p className="text-muted text-sm">
               Upload a CSV statement from your bank.
               Must include date, amount, and description.
             </p>
-            <div style={{ marginTop: 16 }}>
+            <div className="mt-4">
               <span className="badge badge-purple">Privacy-first</span>
             </div>
           </div>
@@ -91,11 +91,11 @@ export default function OnboardingPage() {
       )}
 
       {step === 'csv' && (
-        <div style={{ maxWidth: 600 }}>
+        <div className="max-w-[600px]">
           <div className="card">
-            <h3 style={{ marginBottom: 16 }}>Upload CSV Statement</h3>
+            <h3 className="mb-4">Upload CSV Statement</h3>
 
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-4">
               <label className="label">Account Name</label>
               <input
                 className="input"
@@ -105,33 +105,32 @@ export default function OnboardingPage() {
               />
             </div>
 
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-4">
               <label className="label">CSV File</label>
               <input
                 type="file"
                 accept=".csv"
                 onChange={handleFileSelect}
-                style={{ fontSize: 14, color: 'var(--color-text-muted)' }}
+                className="text-sm text-muted"
               />
             </div>
 
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-4">
               <label className="label">Or paste CSV data directly</label>
               <textarea
-                className="input"
+                className="input font-mono text-xs"
                 rows={8}
                 value={csvData}
                 onChange={(e) => setCsvData(e.target.value)}
                 placeholder={'date,amount,description\n2026-01-15,-45.00,Uber Eats\n2026-01-14,-12.50,Spotify'}
-                style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}
               />
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+            <p className="text-xs text-muted mb-4">
               Required columns: date, amount, description. Optional: merchant, balance.
             </p>
 
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div className="flex gap-3">
               <button className="btn btn-primary" onClick={handleCsvUpload}>
                 Import
               </button>
@@ -148,16 +147,16 @@ export default function OnboardingPage() {
       )}
 
       {step === 'done' && importResult && (
-        <div style={{ maxWidth: 600 }}>
+        <div className="max-w-[600px]">
           <div className="card">
-            <h3 style={{ marginBottom: 12, color: 'var(--color-success)' }}>Import Complete</h3>
-            <p style={{ marginBottom: 8 }}>
+            <h3 className="mb-3 text-green-400">Import Complete</h3>
+            <p className="mb-2">
               Imported <strong>{importResult.row_count}</strong> transactions
               {importResult.error_count > 0 && (
                 <> ({importResult.error_count} rows skipped)</>
               )}
             </p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+            <div className="flex gap-3 mt-4">
               <button className="btn btn-primary" onClick={() => navigate('/review')}>
                 Review Transactions
               </button>

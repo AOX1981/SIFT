@@ -67,10 +67,9 @@ export default function TransactionsPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+      <div className="flex gap-3 mb-6 flex-wrap">
         <select
-          className="input"
-          style={{ width: 180 }}
+          className="input w-[180px]"
           value={filters.category || ''}
           onChange={(e) => setFilter('category', e.target.value)}
         >
@@ -80,8 +79,7 @@ export default function TransactionsPage() {
           ))}
         </select>
         <select
-          className="input"
-          style={{ width: 140 }}
+          className="input w-[140px]"
           value={filters.is_recurring || ''}
           onChange={(e) => setFilter('is_recurring', e.target.value)}
         >
@@ -90,8 +88,7 @@ export default function TransactionsPage() {
           <option value="false">One-time</option>
         </select>
         <select
-          className="input"
-          style={{ width: 140 }}
+          className="input w-[140px]"
           value={filters.needs_review || ''}
           onChange={(e) => setFilter('needs_review', e.target.value)}
         >
@@ -100,16 +97,14 @@ export default function TransactionsPage() {
           <option value="false">Reviewed</option>
         </select>
         <input
-          className="input"
-          style={{ width: 150 }}
+          className="input w-[150px]"
           type="date"
           value={filters.date_from || ''}
           onChange={(e) => setFilter('date_from', e.target.value)}
           placeholder="From"
         />
         <input
-          className="input"
-          style={{ width: 150 }}
+          className="input w-[150px]"
           type="date"
           value={filters.date_to || ''}
           onChange={(e) => setFilter('date_to', e.target.value)}
@@ -122,45 +117,45 @@ export default function TransactionsPage() {
         <div className="loading">Loading transactions...</div>
       ) : (
         <>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Description</th>
-                  <th style={thStyle}>Merchant</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
-                  <th style={thStyle}>Category</th>
-                  <th style={thStyle}>Tags</th>
+                <tr className="border-b border-border">
+                  <th className="text-left px-3 py-2.5 text-muted font-medium whitespace-nowrap">Date</th>
+                  <th className="text-left px-3 py-2.5 text-muted font-medium whitespace-nowrap">Description</th>
+                  <th className="text-left px-3 py-2.5 text-muted font-medium whitespace-nowrap">Merchant</th>
+                  <th className="text-right px-3 py-2.5 text-muted font-medium whitespace-nowrap">Amount</th>
+                  <th className="text-left px-3 py-2.5 text-muted font-medium whitespace-nowrap">Category</th>
+                  <th className="text-left px-3 py-2.5 text-muted font-medium whitespace-nowrap">Tags</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map((txn) => (
-                  <tr key={txn.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={tdStyle}>
+                  <tr key={txn.id} className="border-b border-border">
+                    <td className="px-3 py-2.5">
                       {new Date(txn.posted_at).toLocaleDateString()}
                     </td>
-                    <td style={{ ...tdStyle, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td className="px-3 py-2.5 max-w-[280px] overflow-hidden text-ellipsis whitespace-nowrap">
                       {txn.description_raw}
                     </td>
-                    <td style={tdStyle}>
+                    <td className="px-3 py-2.5">
                       {txn.merchant_norm || '-'}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                      <span className={txn.amount_signed < 0 ? 'money-negative' : 'money-positive'}>
+                    <td className="px-3 py-2.5 text-right font-mono">
+                      <span className={txn.amount_signed < 0 ? 'text-red-400' : 'text-green-400'}>
                         {txn.amount_signed < 0 ? '-' : '+'}${Math.abs(txn.amount_signed).toFixed(2)}
                       </span>
                     </td>
-                    <td style={tdStyle}>
-                      <span className="badge badge-purple" style={{ fontSize: 11 }}>
+                    <td className="px-3 py-2.5">
+                      <span className="badge badge-purple text-[11px]">
                         {(txn.category_norm || 'OTHER').replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                        {txn.is_recurring && <span className="badge badge-blue" style={{ fontSize: 10 }}>recurring</span>}
-                        {txn.is_transfer && <span className="badge badge-yellow" style={{ fontSize: 10 }}>transfer</span>}
-                        {txn.is_fee && <span className="badge badge-red" style={{ fontSize: 10 }}>fee</span>}
+                    <td className="px-3 py-2.5">
+                      <div className="flex gap-1 flex-wrap">
+                        {txn.is_recurring && <span className="badge badge-blue text-[10px]">recurring</span>}
+                        {txn.is_transfer && <span className="badge badge-yellow text-[10px]">transfer</span>}
+                        {txn.is_fee && <span className="badge badge-red text-[10px]">fee</span>}
                       </div>
                     </td>
                   </tr>
@@ -171,23 +166,21 @@ export default function TransactionsPage() {
 
           {/* Pagination */}
           {meta && meta.total > meta.per_page && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
+            <div className="flex justify-center gap-2 mt-6">
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary px-3 py-1.5 text-[13px]"
                 disabled={meta.page <= 1}
                 onClick={() => setPage(meta.page - 1)}
-                style={{ padding: '6px 12px', fontSize: 13 }}
               >
                 Previous
               </button>
-              <span style={{ display: 'flex', alignItems: 'center', fontSize: 13, color: 'var(--color-text-muted)' }}>
+              <span className="flex items-center text-[13px] text-muted">
                 Page {meta.page} of {Math.ceil(meta.total / meta.per_page)}
               </span>
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary px-3 py-1.5 text-[13px]"
                 disabled={meta.page >= Math.ceil(meta.total / meta.per_page)}
                 onClick={() => setPage(meta.page + 1)}
-                style={{ padding: '6px 12px', fontSize: 13 }}
               >
                 Next
               </button>
@@ -198,15 +191,3 @@ export default function TransactionsPage() {
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '10px 12px',
-  color: 'var(--color-text-muted)',
-  fontWeight: 500,
-  whiteSpace: 'nowrap',
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: '10px 12px',
-};

@@ -119,40 +119,39 @@ export default function ReviewPage() {
       {error && <div className="error-message">{error}</div>}
 
       {items.length > 0 && (
-        <div style={{ marginBottom: 24, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        <div className="mb-6 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <th style={{ textAlign: 'left', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Date</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Description</th>
-                <th style={{ textAlign: 'right', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Amount</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Category</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Transfer</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Fee</th>
-                <th style={{ textAlign: 'center', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Always</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', color: 'var(--color-text-muted)', fontWeight: 500 }}>Reason</th>
+              <tr className="border-b border-border">
+                <th className="text-left px-3 py-2.5 text-muted font-medium">Date</th>
+                <th className="text-left px-3 py-2.5 text-muted font-medium">Description</th>
+                <th className="text-right px-3 py-2.5 text-muted font-medium">Amount</th>
+                <th className="text-left px-3 py-2.5 text-muted font-medium">Category</th>
+                <th className="text-center px-3 py-2.5 text-muted font-medium">Transfer</th>
+                <th className="text-center px-3 py-2.5 text-muted font-medium">Fee</th>
+                <th className="text-center px-3 py-2.5 text-muted font-medium">Always</th>
+                <th className="text-left px-3 py-2.5 text-muted font-medium">Reason</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => {
                 const correction = corrections.get(item.txn_id);
                 return (
-                  <tr key={item.txn_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                  <tr key={item.txn_id} className="border-b border-border">
+                    <td className="px-3 py-2.5 whitespace-nowrap">
                       {new Date(item.posted_at).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '10px 12px', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <td className="px-3 py-2.5 max-w-[250px] overflow-hidden text-ellipsis">
                       {item.description_raw}
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                      <span className={item.amount_signed < 0 ? 'money-negative' : 'money-positive'}>
+                    <td className="px-3 py-2.5 text-right font-mono">
+                      <span className={item.amount_signed < 0 ? 'text-red-400' : 'text-green-400'}>
                         ${Math.abs(item.amount_signed).toFixed(2)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
+                    <td className="px-3 py-2.5">
                       <select
-                        className="input"
-                        style={{ padding: '4px 8px', fontSize: 12 }}
+                        className="input px-2 py-1 text-xs"
                         value={correction?.category_norm || item.category_norm || 'OTHER'}
                         onChange={(e) => updateCorrection(item.txn_id, 'category_norm', e.target.value)}
                       >
@@ -163,21 +162,21 @@ export default function ReviewPage() {
                         ))}
                       </select>
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <td className="px-3 py-2.5 text-center">
                       <input
                         type="checkbox"
                         checked={correction?.is_transfer ?? item.is_transfer}
                         onChange={(e) => updateCorrection(item.txn_id, 'is_transfer', e.target.checked)}
                       />
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <td className="px-3 py-2.5 text-center">
                       <input
                         type="checkbox"
                         checked={correction?.is_fee ?? item.is_fee}
                         onChange={(e) => updateCorrection(item.txn_id, 'is_fee', e.target.checked)}
                       />
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <td className="px-3 py-2.5 text-center">
                       <input
                         type="checkbox"
                         checked={correction?.always_apply ?? false}
@@ -185,7 +184,7 @@ export default function ReviewPage() {
                         title="Always apply this correction for similar transactions"
                       />
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
+                    <td className="px-3 py-2.5">
                       <span className={`badge ${
                         item.review_reason === 'low_confidence' ? 'badge-yellow' :
                         item.review_reason === 'high_spend' ? 'badge-red' :
@@ -202,7 +201,7 @@ export default function ReviewPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 12 }}>
+      <div className="flex gap-3">
         <button
           className="btn btn-primary"
           onClick={handleRunAnalysis}
