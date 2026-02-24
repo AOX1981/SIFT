@@ -1,0 +1,17 @@
+{
+  "name": "sift",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal Spending Behavioral Analysis App",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "test": "npm run test --workspace=backend",
+    "lint": "npm run lint --workspace=backend && npm run lint --workspace=frontend"
+  }
+}

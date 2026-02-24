@@ -1,0 +1,1038 @@
+openapi: 3.0.3
+info:
+  title: SIFT - Personal Spending Behavioral Analysis API
+  version: 1.0.0
+  description: |
+    API-first backend for the SIFT spending behavior analysis app.
+    All frontend clients (web, future iOS) consume these endpoints.
+    Deterministic computation precedes all AI usage.
+    LLM cannot generate or modify numeric outputs.
+
+servers:
+  - url: /v1
+    description: V1 API
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+
+    User:
+      type: object
+      required: [id, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Account:
+      type: object
+      required: [id, name, type, source]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        official_name:
+          type: string
+        type:
+          type: string
+        subtype:
+          type: string
+        mask:
+          type: string
+        current_balance:
+          type: number
+        available_balance:
+          type: number
+        iso_currency_code:
+          type: string
+        source:
+          type: string
+          enum: [plaid, csv, pdf]
+
+    Transaction:
+      type: object
+      required: [id, account_id, posted_at, amount_signed, description_raw]
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        source:
+          type: string
+          enum: [BANK, CARD, STATEMENT]
+        posted_at:
+          type: string
+          format: date-time
+        amount_signed:
+          type: number
+          description: Outflow negative
+        currency:
+          type: string
+        description_raw:
+          type: string
+        merchant_raw:
+          type: string
+        merchant_norm:
+          type: string
+        merchant_group:
+          type: string
+        category_norm:
+          type: string
+          enum: [HOUSING, UTILITIES, INSURANCE, GROCERIES, DINING, TRANSPORT, GAS, HEALTHCARE, PERSONAL_CARE, SHOPPING, ENTERTAINMENT, TRAVEL, EDUCATION, SUBSCRIPTIONS, FEES, INTEREST, DEBT_PAYMENT, INCOME, TRANSFER, INVESTMENT, CHARITY, CHILDCARE, PETS, OTHER]
+        is_transfer:
+          type: boolean
+        is_fee:
+          type: boolean
+        is_interest:
+          type: boolean
+        confidence_norm:
+          type: number
+          minimum: 0
+          maximum: 1
+        needs_review:
+          type: boolean
+        is_recurring:
+          type: boolean
+        recurring_key:
+          type: string
+        requiredness:
+          type: string
+          enum: [REQUIRED, SEMI, REQUIRED_DISCRETIONARY, DISCRETIONARY]
+
+    PlaidLinkToken:
+      type: object
+      required: [link_token, expiration]
+      properties:
+        link_token:
+          type: string
+        expiration:
+          type: string
+          format: date-time
+
+    ImportJob:
+      type: object
+      required: [id, source, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          type: string
+          enum: [PLAID, CSV, PDF]
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED]
+        file_name:
+          type: string
+        row_count:
+          type: integer
+        error_count:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+
+    ReviewItem:
+      type: object
+      required: [txn_id, description_raw, amount_signed, posted_at, confidence_norm, review_reason]
+      properties:
+        txn_id:
+          type: string
+          format: uuid
+        description_raw:
+          type: string
+        amount_signed:
+          type: number
+        posted_at:
+          type: string
+          format: date-time
+        merchant_group:
+          type: string
+        category_norm:
+          type: string
+        confidence_norm:
+          type: number
+        is_transfer:
+          type: boolean
+        is_fee:
+          type: boolean
+        is_interest:
+          type: boolean
+        review_reason:
+          type: string
+
+    TransactionCorrection:
+      type: object
+      required: [txn_id]
+      properties:
+        txn_id:
+          type: string
+          format: uuid
+        merchant_group:
+          type: string
+        category_norm:
+          type: string
+        is_transfer:
+          type: boolean
+        is_fee:
+          type: boolean
+        is_interest:
+          type: boolean
+        always_apply:
+          type: boolean
+          description: Creates a persistent user rule
+
+    AnalyticsSignals:
+      type: object
+      properties:
+        net_cashflow:
+          type: number
+        fixed_vs_variable_ratio:
+          type: number
+        required_vs_discretionary_ratio:
+          type: number
+        discretionary_burn_rate:
+          type: number
+        top_merchant_concentration:
+          type: number
+        category_creep_mom:
+          type: number
+        merchant_creep_mom:
+          type: number
+        rolling_baseline_delta:
+          type: number
+        seasonality_index:
+          type: number
+        price_drift_recurring:
+          type: number
+        day_of_week_map:
+          type: object
+          additionalProperties:
+            type: number
+        weekend_premium:
+          type: number
+        late_night_premium:
+          type: number
+        payday_spike:
+          type: number
+        impulse_frequency:
+          type: number
+        subscription_count:
+          type: number
+        subscription_total:
+          type: number
+        fees_total:
+          type: number
+        interest_total:
+          type: number
+        duplicate_charges:
+          type: number
+        cash_buffer_estimate:
+          type: number
+        volatility_score:
+          type: number
+        large_purchase_outliers:
+          type: number
+        savings_rate_estimate:
+          type: number
+        debt_pressure_proxy:
+          type: number
+
+    SavingsRecommendation:
+      type: object
+      required: [title, type, estimated_monthly_savings, estimated_annual_savings, confidence, proof, steps, score]
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [subscription, fee, interest, price_drift, habit_cut]
+        estimated_monthly_savings:
+          type: number
+        estimated_annual_savings:
+          type: number
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        proof:
+          type: array
+          items:
+            type: object
+            properties:
+              txn_id:
+                type: string
+              description:
+                type: string
+              amount:
+                type: number
+              date:
+                type: string
+        steps:
+          type: array
+          items:
+            type: string
+        score:
+          type: number
+
+    Archetype:
+      type: object
+      required: [name, label, description]
+      properties:
+        name:
+          type: string
+          enum: [PAYDAY_SPIKER, WEEKEND_LEAKER, SUBSCRIPTION_CREEP, CONVENIENCE_EATER, IMPULSE_MICRO_SPENDER, LIFESTYLE_CREEP, BILL_DRIFT_VICTIM, FEE_PAYER, INTEREST_LEAKER, VOLATILITY_STRESSOR]
+        label:
+          type: string
+        description:
+          type: string
+        triggered_by:
+          type: array
+          items:
+            type: string
+        signal_values:
+          type: object
+          additionalProperties:
+            type: number
+
+    AnalysisResult:
+      type: object
+      required: [signals, archetypes, recommendations, potential_annual_savings, period_start, period_end]
+      properties:
+        signals:
+          $ref: '#/components/schemas/AnalyticsSignals'
+        archetypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Archetype'
+          maxItems: 2
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsRecommendation'
+          maxItems: 5
+        potential_annual_savings:
+          type: number
+          description: Conservative with 0.85 safety haircut. Shown only if >= $1000.
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+        narration:
+          type: object
+          properties:
+            summary:
+              type: string
+            archetype_narratives:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  narrative:
+                    type: string
+            action_plans:
+              type: array
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  micro_plan:
+                    type: string
+
+    RecurringGroup:
+      type: object
+      required: [id, merchant_group, recurring_key, cadence_days, avg_amount, occurrences]
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchant_group:
+          type: string
+        recurring_key:
+          type: string
+        cadence_days:
+          type: integer
+        avg_amount:
+          type: number
+        occurrences:
+          type: integer
+        last_seen_at:
+          type: string
+          format: date-time
+        is_confirmed:
+          type: boolean
+        requiredness:
+          type: string
+          enum: [REQUIRED, SEMI, REQUIRED_DISCRETIONARY, DISCRETIONARY]
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                name:
+                  type: string
+            example:
+              email: user@example.com
+              password: securepassword123
+              name: Jane Doe
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+              example:
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    email: user@example.com
+                    name: Jane Doe
+                    created_at: "2026-02-24T00:00:00Z"
+                  token: "eyJhbGciOiJIUzI1NiIs..."
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+            example:
+              email: user@example.com
+              password: securepassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+              example:
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    email: user@example.com
+                    name: Jane Doe
+                  token: "eyJhbGciOiJIUzI1NiIs..."
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plaid/link-token:
+    post:
+      tags: [Plaid]
+      summary: Create Plaid link token for frontend
+      responses:
+        '200':
+          description: Link token created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PlaidLinkToken'
+              example:
+                data:
+                  link_token: "link-sandbox-abc123"
+                  expiration: "2026-02-24T04:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plaid/exchange:
+    post:
+      tags: [Plaid]
+      summary: Exchange public token and sync transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [public_token]
+              properties:
+                public_token:
+                  type: string
+            example:
+              public_token: "public-sandbox-abc123"
+      responses:
+        '200':
+          description: Token exchanged, sync started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      connection_id:
+                        type: string
+                      accounts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Account'
+                      import_job_id:
+                        type: string
+              example:
+                data:
+                  connection_id: "550e8400-e29b-41d4-a716-446655440000"
+                  accounts:
+                    - id: "660e8400-e29b-41d4-a716-446655440001"
+                      name: "Checking"
+                      type: "depository"
+                      subtype: "checking"
+                      source: "plaid"
+                  import_job_id: "770e8400-e29b-41d4-a716-446655440002"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plaid/webhook:
+    post:
+      tags: [Plaid]
+      summary: Plaid webhook endpoint
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+
+  /import/csv:
+    post:
+      tags: [Import]
+      summary: Upload CSV statement
+      description: |
+        CSV must include date, amount, description columns.
+        Idempotent by file hash.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, account_name]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                account_name:
+                  type: string
+                account_type:
+                  type: string
+                  default: checking
+      responses:
+        '200':
+          description: Import started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ImportJob'
+              example:
+                data:
+                  id: "880e8400-e29b-41d4-a716-446655440003"
+                  source: CSV
+                  status: PROCESSING
+                  file_name: "statements.csv"
+        '400':
+          description: Invalid CSV format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /import/{jobId}:
+    get:
+      tags: [Import]
+      summary: Get import job status
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Import job details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ImportJob'
+        '404':
+          description: Job not found
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: List user accounts
+      responses:
+        '200':
+          description: Account list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+              example:
+                data:
+                  - id: "660e8400-e29b-41d4-a716-446655440001"
+                    name: "Checking"
+                    type: "depository"
+                    subtype: "checking"
+                    current_balance: 4250.00
+                    source: "plaid"
+
+  /transactions:
+    get:
+      tags: [Transactions]
+      summary: List transactions with filtering and pagination
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: account_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: is_recurring
+          in: query
+          schema:
+            type: boolean
+        - name: needs_review
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated transaction list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /review:
+    get:
+      tags: [Review]
+      summary: Get Review 20 items (low-confidence transactions for correction)
+      description: |
+        Returns up to 20 transactions that need user review.
+        Includes low-confidence, high-spend, suspected transfers, recurring candidates.
+      responses:
+        '200':
+          description: Review items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReviewItem'
+                    maxItems: 20
+              example:
+                data:
+                  - txn_id: "990e8400-e29b-41d4-a716-446655440004"
+                    description_raw: "VENMO PAYMENT 12345"
+                    amount_signed: -250.00
+                    posted_at: "2026-02-20T00:00:00Z"
+                    merchant_group: null
+                    category_norm: "TRANSFER"
+                    confidence_norm: 0.45
+                    is_transfer: true
+                    is_fee: false
+                    is_interest: false
+                    review_reason: "low_confidence"
+
+  /review/corrections:
+    post:
+      tags: [Review]
+      summary: Submit transaction corrections
+      description: |
+        Apply corrections from Review 20.
+        If always_apply is true, creates persistent user rules.
+        Idempotent per txn_id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [corrections]
+              properties:
+                corrections:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TransactionCorrection'
+            example:
+              corrections:
+                - txn_id: "990e8400-e29b-41d4-a716-446655440004"
+                  is_transfer: true
+                  always_apply: true
+      responses:
+        '200':
+          description: Corrections applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      updated_count:
+                        type: integer
+                      rules_created:
+                        type: integer
+              example:
+                data:
+                  updated_count: 3
+                  rules_created: 1
+
+  /recurring:
+    get:
+      tags: [Recurring]
+      summary: List detected recurring transactions
+      responses:
+        '200':
+          description: Recurring groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecurringGroup'
+
+  /recurring/{id}/confirm:
+    post:
+      tags: [Recurring]
+      summary: Confirm or reject a recurring group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmed]
+              properties:
+                confirmed:
+                  type: boolean
+                requiredness:
+                  type: string
+                  enum: [REQUIRED, SEMI, REQUIRED_DISCRETIONARY, DISCRETIONARY]
+            example:
+              confirmed: true
+              requiredness: REQUIRED
+      responses:
+        '200':
+          description: Recurring group updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RecurringGroup'
+
+  /analysis:
+    post:
+      tags: [Analysis]
+      summary: Run full analysis pipeline
+      description: |
+        Triggers: normalization → classification → analytics → recommendations → archetypes → narration.
+        Returns complete analysis result.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                include_narration:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Analysis complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnalysisResult'
+
+  /analysis/latest:
+    get:
+      tags: [Analysis]
+      summary: Get most recent analysis snapshot
+      responses:
+        '200':
+          description: Latest analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AnalysisResult'
+        '404':
+          description: No analysis found
+
+  /analysis/history:
+    get:
+      tags: [Analysis]
+      summary: List analysis snapshots
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Analysis history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AnalysisResult'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /user/rules:
+    get:
+      tags: [User Rules]
+      summary: List user correction rules
+      responses:
+        '200':
+          description: User rules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        rule_type:
+                          type: string
+                        match_field:
+                          type: string
+                        match_value:
+                          type: string
+                        assign_field:
+                          type: string
+                        assign_value:
+                          type: string
+
+    delete:
+      tags: [User Rules]
+      summary: Delete a user rule
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Rule deleted
+
+  /user/delete:
+    delete:
+      tags: [User]
+      summary: Hard delete user and all data
+      responses:
+        '204':
+          description: User and all associated data deleted

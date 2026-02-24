@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  accounts           Account[]
+  plaidConnections   PlaidConnection[]
+  importJobs         ImportJob[]
+  userRules          UserRule[]
+  analysisSnapshots  AnalysisSnapshot[]
+
+  @@map("users")
+}
+
+model PlaidConnection {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  accessToken     String   @map("access_token")
+  itemId          String   @map("item_id")
+  institutionId   String?  @map("institution_id")
+  institutionName String?  @map("institution_name")
+  status          String   @default("active")
+  cursor          String?
+  lastSyncAt      DateTime? @map("last_sync_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts Account[]
+
+  @@map("plaid_connections")
+}
+
+model Account {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  plaidConnectionId String? @map("plaid_connection_id")
+  plaidAccountId   String?  @map("plaid_account_id")
+  name             String
+  officialName     String?  @map("official_name")
+  type             String
+  subtype          String?
+  mask             String?
+  currentBalance   Float?   @map("current_balance")
+  availableBalance Float?   @map("available_balance")
+  isoCurrencyCode  String?  @map("iso_currency_code")
+  source           String   @default("plaid")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidConnection PlaidConnection? @relation(fields: [plaidConnectionId], references: [id])
+  transactions    Transaction[]
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id               String   @id @default(uuid())
+  accountId        String   @map("account_id")
+  source           TransactionSource @default(BANK)
+  plaidTxnId       String?  @unique @map("plaid_txn_id")
+  postedAt         DateTime @map("posted_at")
+  amountSigned     Float    @map("amount_signed")
+  currency         String   @default("USD")
+  descriptionRaw   String   @map("description_raw")
+  merchantRaw      String?  @map("merchant_raw")
+  balanceAfter     Float?   @map("balance_after")
+  typeRaw          String?  @map("type_raw")
+  categoryRaw      String?  @map("category_raw")
+  counterpartyRaw  Json?    @map("counterparty_raw")
+
+  // Computed fields (post-normalization)
+  merchantNorm          String?  @map("merchant_norm")
+  merchantGroup         String?  @map("merchant_group")
+  categoryNorm          CategoryNorm? @map("category_norm")
+  isTransfer            Boolean  @default(false) @map("is_transfer")
+  isFee                 Boolean  @default(false) @map("is_fee")
+  isInterest            Boolean  @default(false) @map("is_interest")
+  confidenceNorm        Float?   @map("confidence_norm")
+  needsReview           Boolean  @default(false) @map("needs_review")
+  isRecurring           Boolean  @default(false) @map("is_recurring")
+  recurringKey          String?  @map("recurring_key")
+  requiredness          Requiredness?
+  confidenceRequiredness Float?  @map("confidence_requiredness")
+
+  importJobId      String?  @map("import_job_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  importJob ImportJob? @relation(fields: [importJobId], references: [id])
+
+  @@index([accountId, postedAt])
+  @@index([merchantGroup])
+  @@index([categoryNorm])
+  @@index([isRecurring])
+  @@map("transactions")
+}
+
+model ImportJob {
+  id         String       @id @default(uuid())
+  userId     String       @map("user_id")
+  source     ImportSource
+  status     ImportStatus @default(PENDING)
+  fileName   String?      @map("file_name")
+  rowCount   Int?         @map("row_count")
+  errorCount Int?         @map("error_count")
+  errors     Json?
+  startedAt  DateTime?    @map("started_at")
+  completedAt DateTime?   @map("completed_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("import_jobs")
+}
+
+model UserRule {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  ruleType       RuleType @map("rule_type")
+  matchField     String   @map("match_field")
+  matchValue     String   @map("match_value")
+  assignField    String   @map("assign_field")
+  assignValue    String   @map("assign_value")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_rules")
+}
+
+model RecurringGroup {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  merchantGroup  String   @map("merchant_group")
+  recurringKey   String   @map("recurring_key")
+  cadenceDays    Int      @map("cadence_days")
+  avgAmount      Float    @map("avg_amount")
+  occurrences    Int
+  lastSeenAt     DateTime @map("last_seen_at")
+  isConfirmed    Boolean  @default(false) @map("is_confirmed")
+  requiredness   Requiredness?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, recurringKey])
+  @@map("recurring_groups")
+}
+
+model AnalysisSnapshot {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  signals    Json
+  archetypes Json
+  recommendations Json
+  narration  Json?
+  periodStart DateTime @map("period_start")
+  periodEnd   DateTime @map("period_end")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("analysis_snapshots")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  resource  String
+  resourceId String? @map("resource_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+enum TransactionSource {
+  BANK
+  CARD
+  STATEMENT
+}
+
+enum CategoryNorm {
+  HOUSING
+  UTILITIES
+  INSURANCE
+  GROCERIES
+  DINING
+  TRANSPORT
+  GAS
+  HEALTHCARE
+  PERSONAL_CARE
+  SHOPPING
+  ENTERTAINMENT
+  TRAVEL
+  EDUCATION
+  SUBSCRIPTIONS
+  FEES
+  INTEREST
+  DEBT_PAYMENT
+  INCOME
+  TRANSFER
+  INVESTMENT
+  CHARITY
+  CHILDCARE
+  PETS
+  OTHER
+}
+
+enum Requiredness {
+  REQUIRED
+  SEMI
+  REQUIRED_DISCRETIONARY
+  DISCRETIONARY
+}
+
+enum ImportSource {
+  PLAID
+  CSV
+  PDF
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RuleType {
+  MERCHANT_GROUP
+  CATEGORY
+  TRANSFER
+  FEE
+  INTEREST
+  REQUIREDNESS
+}
