@@ -1,11 +1,32 @@
+# Node / TypeScript
 node_modules/
 dist/
 build/
+*.tsbuildinfo
+
+# Environment
 .env
 .env.local
 .env.*.local
+
+# iOS / Xcode
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
+.swiftpm/
+xcuserdata/
+
+# CocoaPods
+Pods/
+
+# Ruby / Bundler
+vendor/bundle/
+.bundle/
+
+# Misc
 *.log
 .DS_Store
 coverage/
 .nyc_output/
-*.tsbuildinfo

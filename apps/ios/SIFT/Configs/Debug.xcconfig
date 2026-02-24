@@ -1,0 +1,5 @@
+// Debug configuration for SIFT iOS app
+// No references to repo root or other apps
+
+SIFT_API_BASE_URL = http://localhost:4000/v1
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG

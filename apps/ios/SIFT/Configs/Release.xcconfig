@@ -1,0 +1,4 @@
+// Release configuration for SIFT iOS app
+// Update API_BASE_URL before production release
+
+SIFT_API_BASE_URL = https://api.sift.example.com/v1
