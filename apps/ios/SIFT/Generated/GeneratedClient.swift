@@ -84,7 +84,7 @@ final class SIFTAPIClient: ObservableObject {
     static let shared = SIFTAPIClient()
 
     /// Base URL for the SIFT V1 API. Change this to point at staging / production.
-    @Published var baseURL: String = "http://localhost:4000/v1"
+    @Published var baseURL: String = Bundle.main.object(forInfoDictionaryKey: "SIFTAPIBaseURL") as? String ?? "http://localhost:4000/v1"
 
     /// Bearer token used in the `Authorization` header.
     /// Persisted in UserDefaults under `sift_auth_token`.

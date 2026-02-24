@@ -49,7 +49,7 @@ final class APIClient: ObservableObject {
 
     static let shared = APIClient()
 
-    @Published var baseURL: String = "http://localhost:4000/v1"
+    @Published var baseURL: String = Bundle.main.object(forInfoDictionaryKey: "SIFTAPIBaseURL") as? String ?? "http://localhost:4000/v1"
 
     var token: String? {
         get { UserDefaults.standard.string(forKey: "sift_auth_token") }
